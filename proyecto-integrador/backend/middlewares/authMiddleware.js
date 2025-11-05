@@ -1,5 +1,7 @@
 import jwt from 'jsonwebtoken';
 import pool from '../config/db.js';
+import dotenv from 'dotenv';
+dotenv.config();
 
 // --- ¡AQUÍ ESTÁ LA CORRECIÓN! ---
 // Importamos y cargamos dotenv aquí mismo
