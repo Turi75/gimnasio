@@ -1,14 +1,10 @@
 import jwt from 'jsonwebtoken';
 import pool from '../config/db.js';
 import dotenv from 'dotenv';
-dotenv.config();
 
-// --- ¡AQUÍ ESTÁ LA CORRECIÓN! ---
 // Importamos y cargamos dotenv aquí mismo
 // para asegurar que process.env.JWT_SECRETO esté disponible.
-import dotenv from 'dotenv';
 dotenv.config();
-// --- FIN DE CORRECCIÓN ---
 
 /**
  * Middleware para verificar el Token (JWT)
@@ -19,14 +15,17 @@ const verificarToken = async (req, res, next) => {
     try {
       token = req.headers.authorization.split(' ')[1];
       
-      // Ahora jwt.verify SÍ encontrará el secreto
       const decodificado = jwt.verify(token, process.env.JWT_SECRETO);
 
-      // Usamos la sintaxis de MySQL [rows]
-      const [rows] = await pool.query(
-        'SELECT u.id, u.nombre, u.email, u.dni, r.nombre AS rol FROM usuarios u JOIN roles r ON u.rol_id = r.id WHERE u.id = ?',
+      // --- ¡CORRECCIÓN CRÍTICA DE POSTGRESQL! ---
+      // Se reemplazó la sintaxis de MySQL ( [rows] y ? )
+      // por la sintaxis de PostgreSQL ( { rows } y $1 )
+      // que coincide con el resto de tu proyecto.
+      const { rows } = await pool.query(
+        'SELECT u.id, u.nombre, u.email, u.dni, r.nombre AS rol FROM usuarios u JOIN roles r ON u.rol_id = r.id WHERE u.id = $1',
         [decodificado.id]
       );
+      // --- FIN DE CORRECCIÓN ---
 
       if (rows.length === 0) {
         return res.status(404).json({ msg: 'Usuario no encontrado.' });
@@ -36,7 +35,6 @@ const verificarToken = async (req, res, next) => {
       return next();
 
     } catch (error) {
-      // Si el secreto no coincidía, caía aquí
       console.error('Error de autenticación:', error.message);
       return res.status(401).json({ msg: 'Token no válido o expirado.' });
     }
