@@ -17,10 +17,6 @@ const verificarToken = async (req, res, next) => {
       
       const decodificado = jwt.verify(token, process.env.JWT_SECRETO);
 
-      // --- ¡CORRECCIÓN CRÍTICA DE POSTGRESQL! ---
-      // Se reemplazó la sintaxis de MySQL ( [rows] y ? )
-      // por la sintaxis de PostgreSQL ( { rows } y $1 )
-      // que coincide con el resto de tu proyecto.
       const { rows } = await pool.query(
         'SELECT u.id, u.nombre, u.email, u.dni, r.nombre AS rol FROM usuarios u JOIN roles r ON u.rol_id = r.id WHERE u.id = $1',
         [decodificado.id]
